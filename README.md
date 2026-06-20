@@ -1,5 +1,7 @@
 # bamsteg
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20778947.svg)](https://doi.org/10.5281/zenodo.20778947)
+
 Format-preserving steganography and forensic steganalysis for BAM (genomic sequence alignment) files.
 
 bamsteg is a paired offense/defense research tool. It includes two working methods for hiding encrypted, arbitrary-content payloads inside a standard BAM file without breaking its structure, alongside a forensic detector purpose-built to catch them.

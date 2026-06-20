@@ -8,6 +8,7 @@ authors:
     email: "mkm25@aub.edu.lb"
 version: 0.1.0
 date-released: "2026-06-21"
+doi: "10.5281/zenodo.20778947"
 url: "https://github.com/MarkBarsoumMarkarian/bamsteg"
 repository-code: "https://github.com/MarkBarsoumMarkarian/bamsteg"
 license: MIT
