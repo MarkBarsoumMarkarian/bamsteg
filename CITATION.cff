@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "bamsteg: Format-preserving steganography and forensic steganalysis for BAM files"
+authors:
+  - family-names: "Markarian"
+    given-names: "Mark Barsoum"
+    affiliation: "American University of Beirut"
+    email: "mkm25@aub.edu.lb"
+version: 0.1.0
+date-released: "2026-06-21"
+url: "https://github.com/MarkBarsoumMarkarian/bamsteg"
+repository-code: "https://github.com/MarkBarsoumMarkarian/bamsteg"
+license: MIT
+keywords:
+  - steganography
+  - steganalysis
+  - bioinformatics
+  - genomics
+  - BAM
+  - forensics
