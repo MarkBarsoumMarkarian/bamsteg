@@ -25,7 +25,7 @@ This is a research and forensic-tooling project. It is not intended, and should 
 ## Installation
 
 ```bash
-git clone https://github.com/<your-username>/bamsteg.git
+git clone https://github.com/MarkBarsoumMarkarian/bamsteg.git
 cd bamsteg
 pip install -e .
 ```

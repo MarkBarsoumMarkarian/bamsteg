@@ -5,7 +5,7 @@ Contributions are welcome, especially on the detection side. That's the part of 
 ## Setup
 
 ```bash
-git clone https://github.com/<your-username>/bamsteg.git
+git clone https://github.com/MarkBarsoumMarkarian/bamsteg.git
 cd bamsteg
 python3 -m venv env && source env/bin/activate
 pip install -e .
