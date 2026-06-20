@@ -1,0 +1,9 @@
+env/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+
+# Test artifacts — verify these are synthetic before committing real data
+test_sandbox/*.bam
