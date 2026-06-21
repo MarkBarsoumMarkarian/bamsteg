@@ -12,17 +12,27 @@ Genomic data pipelines move enormous binary files between labs, sequencing cores
 
 bamsteg was built to answer one question: **if someone hid data inside genomic files moving through a real bioinformatics pipeline, would anyone notice?** The embedder proves the channel exists. The detector exists so the answer can be "yes."
 
-This is a research and forensic-tooling project. It is not intended, and should not be used, for unauthorized data exfiltration from systems you don't own or have explicit permission to test.
+This is a research and forensic-tooling project. It is not intended, and should not be used, for unauthorized data exfiltration from systems you do not own or have explicit permission to test.
 
 ## How it works
 
 - **AES-256-GCM** encryption (PBKDF2-HMAC-SHA256 key derivation, per-message salt and nonce) wraps every payload before it touches the BAM file. Nothing is embedded in plaintext.
-- **Error-correcting code** wraps the ciphertext so the hidden payload can survive realistic processing (e.g. re-sorting) without becoming unrecoverable.
-- **Passphrase-seeded read selection**: a PRNG seeded from the passphrase chooses which reads carry payload bits, so the carrier set isn't sequential or guessable without the key.
+- **Reed-Solomon error correction** wraps the ciphertext so the hidden payload can survive realistic BAM processing (e.g. re-sorting, deduplication) without becoming unrecoverable.
+- **Passphrase-seeded read selection**: a PRNG seeded from the passphrase chooses which reads carry payload bits, so the carrier set is not sequential or guessable without the key.
 - **Two embedding modes:**
-  - `aux`: payload bytes encoded across a custom auxiliary tag on selected reads.
-  - `lsb`: payload bits hidden in the least-significant-bit of Phred quality scores.
-- **`bamsteg detect`**: forensic steganalysis combining BAM header signature scanning, auxiliary tag scanning, and per-read Shannon entropy analysis on quality-score LSBs to flag anomalous files.
+  - `aux`: payload bytes encoded across a custom auxiliary tag (`ZS`) on selected reads. Zero impact on SEQ, QUAL, CIGAR, or POS -- variant callers see an identical file.
+  - `lsb`: payload bits hidden in the least-significant bit of Phred quality scores. A ±1 quality delta (e.g. Q30 vs Q31) is invisible to variant calling pipelines.
+
+## Detection (`bamsteg detect`)
+
+The detector runs four independent steganalysis methods and combines them into a single threat level (CLEAN / SUSPICIOUS / HIGH / CRITICAL):
+
+1. **Header signature scan** -- checks `@CO` and `@PG` fields for known steganography tool signatures.
+2. **Generic aux tag scan** -- flags any `X*/Y*/Z*` tag (SAM spec reserved namespace) carrying a hex-pattern covert channel value, not just bamsteg-specific tag names.
+3. **Adaptive LSB chi-squared** -- splits each read into a head zone (potential payload) and tail zone (used as instrument baseline), then chi-squares their LSB parity distributions. Instrument-independent: no hardcoded quality score assumptions.
+4. **RS-SPA (Sample Pairs Analysis)** -- measures the P1/P2 adjacent-score pair ratio. In clean Illumina data P1 < P2 naturally; LSB flipping inflates P1 toward and above P2. Detects low-rate embedding (<3% of reads) where chi-squared loses statistical power.
+
+`detect` exits with code 0 (clean) or 1 (anomaly found), making it pipeline-friendly as a BAM intake check.
 
 ## Installation
 
@@ -47,18 +57,28 @@ bamsteg embed --mode lsb --input in.bam --output out.bam --payload secret.txt --
 bamsteg extract --mode aux --input out.bam --passphrase "key" --out-payload recovered.txt
 
 # Run forensic steganalysis on an unknown BAM file
-bamsteg detect --input target.bam --sample-size 10000 --entropy-threshold 0.95
-```
+bamsteg detect --input target.bam
 
-`detect` exits non-zero and prints a threat level (LOW / HIGH / CRITICAL) when it flags anomalies, so it's pipeline-friendly. Drop it into a CI step or an intake script for sequencing data.
+# Scan with a custom sample size (default: 50,000 reads)
+bamsteg detect --input target.bam --sample 10000
+```
 
 ## Detection limitations
 
-No single heuristic generalizes to every possible encoding scheme. `bamsteg detect` is tuned against the methods this project ships, not as a universal genomic-steganalysis solution. Treat a clean scan as "no known signature found," not as a guarantee of integrity. This is an active area the project intends to keep improving.
+No single heuristic generalizes to every possible encoding scheme. `bamsteg detect` is tuned against the methods this project ships and may miss novel embedding strategies or non-standard implementations. Treat a clean scan as "no known signature found," not as a guarantee of integrity.
 
 ## Responsible use
 
-This project is published for security research, bioinformatics forensics, and education. Do not use it to hide or move data through systems, pipelines, or organizations without explicit authorization. If you work in genomics security and this exposes a gap in your own infrastructure, that's the point. Go fix it.
+This project is published for security research, bioinformatics forensics, and education. Do not use it to hide or move data through systems, pipelines, or organizations without explicit authorization. If you work in genomics security and this exposes a gap in your own infrastructure, that is the point.
+
+## Citation
+
+If you use bamsteg in research, please cite the Zenodo record:
+
+```
+Markarian, M. B. (2026). bamsteg: Format-preserving steganography and
+steganalysis for NGS BAM files. Zenodo. https://doi.org/10.5281/zenodo.20778947
+```
 
 ## License
 
